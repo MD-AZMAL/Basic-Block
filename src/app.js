@@ -1,6 +1,11 @@
 const express = require('express'),
     app = express(),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    uuid = require('uuid/v1'),
+    nodeAddr = uuid(),
+    reqPromise = require('request-promise');
+
+const port = process.argv[2];
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -33,6 +38,68 @@ app.post('/transaction', (req, res) => {
     res.json({ message: `Transaction is added to block with index: ${blockIndex}` });
 });
 
-app.listen('8080', () => {
-    console.log('>>> Server Started at port : 8080');
+// decentralize
+
+app.post('/register-node', (req, res) => { // single node register
+    const nodeUrl = req.body.nodeUrl;
+
+    if ((butcoin.nodeUrl != nodeUrl) && (butcoin.networkNodes.indexOf(nodeUrl) == -1)) {
+        butcoin.networkNodes.push(nodeUrl);
+        res.json({ message: 'node registered successfully' });
+    } else {
+        res.json({ message: 'node cannot be registered' });
+    }
+
+});
+
+app.post('/register-bulk-nodes', (req, res) => { // bulk node register
+    const networkNodes = req.body.networkNodes;
+
+    networkNodes.forEach(nodeUrl => {
+        if ((butcoin.nodeUrl != nodeUrl) && (butcoin.networkNodes.indexOf(nodeUrl) == -1)) {
+            butcoin.networkNodes.push(nodeUrl);
+        }
+    });
+
+    res.json({ message: 'Bulk register successful' });
+
+});
+
+app.post('/register-and-broadcast-node', (req, res) => { // register and broadcast one node
+    const nodeUrl = req.body.nodeUrl;
+
+    if (butcoin.networkNodes.indexOf(nodeUrl) == -1) {
+        butcoin.networkNodes.push(nodeUrl);
+    }
+
+    const registerNodes = []
+
+    butcoin.networkNodes.forEach(networkNode => {
+        const requestOptions = {
+            uri: networkNode + '/register-node',
+            method: 'POST',
+            body: { nodeUrl: nodeUrl },
+            json: true
+        }
+
+        registerNodes.push(reqPromise(requestOptions));
+    });
+
+    Promise.all(registerNodes)
+        .then(data => {
+            const bulkRegisterOption = {
+                uri: nodeUrl + '/register-bulk-nodes',
+                method: 'POST',
+                body: { networkNodes: [...butcoin.networkNodes, butcoin.nodeUrl] },
+                json: true
+            }
+
+            return reqPromise(bulkRegisterOption);
+        }).then(data => {
+            res.json('node registered to network successfully');
+        });
+});
+
+app.listen(port, () => {
+    console.log('>>> Server Started at port :' + port);
 });
