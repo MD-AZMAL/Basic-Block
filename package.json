@@ -5,7 +5,11 @@
   "main": "src/app.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon --watch src -e js src/api.js"
+    "node1": "nodemon --watch src -e js src/api.js 8080 http://localhost:8080",
+    "node2": "nodemon --watch src -e js src/api.js 8081 http://localhost:8081",
+    "node3": "nodemon --watch src -e js src/api.js 8082 http://localhost:8082",
+    "node4": "nodemon --watch src -e js src/api.js 8083 http://localhost:8083",
+    "node5": "nodemon --watch src -e js src/api.js 8084 http://localhost:8084"
   },
   "author": "",
   "license": "MIT",
@@ -13,6 +17,9 @@
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "nodemon": "^1.18.6",
-    "sha256": "^0.2.0"
+    "request": "^2.88.0",
+    "request-promise": "^4.2.2",
+    "sha256": "^0.2.0",
+    "uuid": "^3.3.2"
   }
 }
